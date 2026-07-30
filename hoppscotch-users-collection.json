@@ -1,0 +1,36 @@
+{
+  "v": 8,
+  "name": "Users API",
+  "folders": [],
+  "requests": [
+    {
+      "v": "15",
+      "name": "Get Users",
+      "method": "GET",
+      "endpoint": "<<baseUrl>>/v1/users",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "",
+      "testScript": "",
+      "auth": { "authType": "none", "authActive": true },
+      "body": { "contentType": null, "body": null },
+      "requestVariables": []
+    },
+    {
+      "v": "15",
+      "name": "Add User",
+      "method": "POST",
+      "endpoint": "<<baseUrl>>/v1/users",
+      "params": [],
+      "headers": [{ "key": "Content-Type", "value": "application/json", "active": true }],
+      "preRequestScript": "",
+      "testScript": "",
+      "auth": { "authType": "none", "authActive": true },
+      "body": {
+        "contentType": "application/json",
+        "body": "{\n  \"telegramId\": \"123456789\",\n  \"username\": \"jane_doe\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"jane@example.com\",\n  \"phoneNo\": \"+923001234567\",\n  \"profilePicture\": \"https://example.com/jane.jpg\"\n}"
+      },
+      "requestVariables": []
+    }
+  ]
+}

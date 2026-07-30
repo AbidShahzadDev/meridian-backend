@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  username       String
+  firstName      String
+  lastName       String
+  email          String   @unique
+  password       String?
+  phoneNo        String?
+  profilePicture String?
+  role           String   @default("buyer")
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  cart           Cart?
+  orders         Order[]
+  notificationDevices NotificationDevice[]
+  notifications  Notification[]
+}
+
+model EmailVerification {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  username       String
+  firstName      String
+  lastName       String
+  phoneNo        String
+  profilePicture String
+  passwordHash   String
+  otpHash        String
+  attempts       Int      @default(0)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  image       String?
+  description String?
+  parentId    String?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[] @relation("CategoryProducts")
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  logo      String?
+  status    String    @default("active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[] @relation("BrandProducts")
+}
+
+model Product {
+  id               String     @id @default(cuid())
+  title            String
+  slug             String     @unique
+  description      String?
+  shortDescription String?
+  sku              String?
+  barcode          String?
+  categoryId       String?
+  brandId          String?
+  price            Float
+  salePrice        Float?
+  stock            Int        @default(0)
+  weight           Float?
+  dimensions       String?
+  featuredImage    String?
+  gallery          String[]   @default([])
+  status           String     @default("active")
+  isFeatured       Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  category         Category?  @relation("CategoryProducts", fields: [categoryId], references: [id])
+  brand            Brand?     @relation("BrandProducts", fields: [brandId], references: [id])
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String
+  status          String      @default("pending")
+  paymentMethod   String      @default("cash_on_delivery")
+  paymentStatus   String      @default("pending")
+  currency        String      @default("PKR")
+  subtotal        Float
+  shippingFee     Float       @default(0)
+  total           Float
+  fullName        String
+  phoneNo         String
+  addressLine1    String
+  addressLine2    String?
+  city            String
+  state           String?
+  postalCode      String?
+  country         String
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  user            User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items           OrderItem[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  productId    String
+  productName  String
+  productSlug  String
+  sku          String?
+  image        String?
+  unitPrice    Float
+  quantity     Int
+  lineTotal    Float
+  createdAt    DateTime @default(now())
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model NotificationDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
